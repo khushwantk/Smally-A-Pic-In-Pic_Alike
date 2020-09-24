@@ -1,29 +1,45 @@
-const videoElement = document.getElementById('video');
-const button= document.getElementById('button');
+const videoElement = document.getElementById("video");
+const startBtn = document.getElementById("start");
+const stopBtn = document.getElementById("stop");
+const selectBtn = document.getElementById("select");
 
+const selectMediaStream = async () => {
+  try {
+    const mediaStream = await navigator.mediaDevices.getDisplayMedia();
+    videoElement.srcObject = mediaStream;
+    videoElement.onloadedmetadata = () => {
+      videoElement.play();
+    };
+    selectBtn.hidden = true;
+    startBtn.hidden = false;
+  } catch (error) {}
+};
 
-async function selectVideoStream(){
-    try{
-       const VideoStream= await navigator.mediaDevices.getDisplayMedia();
-       videoElement.srcObject = VideoStream;
-       videoElement.onloadedmetadata=()=>{
-           videoElement.play();
-       }
-    }
-    catch(error){
-         console.log("Error Occured",error);
-    }
+stopStreamedVideo = (videoElement) => {
+  const mediaStream = videoElement.srcObject;
+  const tracks = mediaStream.getTracks();
 
-}
+  tracks.forEach((track) => {
+    track.stop();
+  });
+};
 
-button.addEventListener('click',async()=> {
-    //Disabling the button 
-    button.disabled = true;
-    //Start the Pixc
-    await videoElement.requestPictureInPicture();
-    //Reset the button state
-    button.disabled = false;
+const startPIP = async () => {
+  startBtn.hidden = true;
+  stopBtn.hidden = false;
+  await videoElement.requestPictureInPicture();
+};
 
-})
+const stopPIP = () => {
+  stopStreamedVideo(videoElement);
+  stopBtn.hidden = true;
+  selectBtn.hidden = false;
 
-selectVideoStream();
+  document.exitPictureInPicture();
+};
+
+selectBtn.addEventListener("click", selectMediaStream);
+
+startBtn.addEventListener("click", startPIP);
+
+stopBtn.addEventListener("click", stopPIP);
